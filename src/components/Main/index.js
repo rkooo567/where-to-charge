@@ -12,8 +12,10 @@
 import React from 'react';
 import {
   View,
-  Text,
+  Button,
 } from 'react-native';
+
+import Expo from 'expo';
 
 import Loading from '../Loading/index';
 import Error from '../Error/index';
@@ -33,6 +35,13 @@ class Main extends React.Component {
 
   }
 
+  buttonHandler() {
+    const option = {
+      language: 'en',
+    };
+    Expo.Speech.speak("Don't go Yuiya...", option);
+  }
+
   render() {
     /*if (this.props.error) {
       return (
@@ -44,8 +53,11 @@ class Main extends React.Component {
       );
     } else {*/
       return (
-        <View>
-          <Text>Main page</Text>
+        <View style={{padding: 60}}>
+          <Button
+            onPress={() => this.buttonHandler()}
+            title={"voice"}
+          />
         </View>
       );
     }
