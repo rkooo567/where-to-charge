@@ -5,20 +5,20 @@
 * @classDesc The main part of the page.
 * 
 * consists of: 
-*   openMapButton
+*   ChatForm : For interacting with a chatbot
 * 
 * */
 
 import React from 'react';
 import {
-  View,
-  Button,
-} from 'react-native';
+  Content
+} from 'native-base';
 
 import Expo from 'expo';
 
 import Loading from '../Loading/index';
 import Error from '../Error/index';
+import ChatForm from '../ChatForm/index';
 
 //import { bindActionCreators } from 'redux';
 //import { connect } from 'react-redux';
@@ -35,13 +35,6 @@ class Main extends React.Component {
 
   }
 
-  buttonHandler() {
-    const option = {
-      language: 'en',
-    };
-    Expo.Speech.speak("Don't go Yuiya...", option);
-  }
-
   render() {
     /*if (this.props.error) {
       return (
@@ -53,12 +46,9 @@ class Main extends React.Component {
       );
     } else {*/
       return (
-        <View style={{padding: 60}}>
-          <Button
-            onPress={() => this.buttonHandler()}
-            title={"voice"}
-          />
-        </View>
+        <Content style={{padding: 60}}>
+          <ChatForm />
+        </Content>
       );
     }
   //}

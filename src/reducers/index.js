@@ -1,9 +1,8 @@
 import { combineReducers } from 'redux';
-import { dataReducer } from './data-reducer';
+import { dialogFlowRequestReducer } from './request-reducers';
 
 const rootReducer = combineReducers({
-  dataReducer: dataReducer,
-  // ,[ANOTHER REDUCER], [ANOTHER REDUCER] ....
+  dialogFlowInformation: dialogFlowRequestReducer
 });
 
 export default rootReducer;

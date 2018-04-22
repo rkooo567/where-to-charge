@@ -1,4 +1,4 @@
-import { DATA_AVAILABLE } from "../actions/constants";
+import { DATA_AVAILABLE } from "../actions/action-types";
 
 let dataState = { data: [], loading:true };
 

@@ -12,8 +12,8 @@
 
 import React from 'react';
 import {
-  View,
-} from 'react-native';
+  Container
+} from 'native-base';
 
 import CustomHeader from '../CustomHeader/index';
 import Main from '../Main/index';
@@ -22,10 +22,10 @@ export default class Home extends React.Component {
 
   render() {
     return (
-      <View>
+      <Container>
         <CustomHeader />
         <Main />
-      </View>
+      </Container>
     );
   }
 }
