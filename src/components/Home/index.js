@@ -13,12 +13,13 @@
 import React from 'react';
 import {
   View,
+  Text,
 } from 'react-native';
 
 import Header from '../Header/index';
 import Main from '../Main/index';
 
-class Home extends React.Component {
+export default class Home extends React.Component {
 
   render() {
     return (

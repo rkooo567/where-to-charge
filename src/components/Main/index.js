@@ -12,6 +12,7 @@
 import React from 'react';
 import {
   View,
+  Text,
 } from 'react-native';
 
 import Loading from '../Loading/index';
@@ -33,7 +34,7 @@ class Main extends React.Component {
   }
 
   render() {
-    if (this.props.error) {
+    /*if (this.props.error) {
       return (
         <Error />
       );
@@ -41,14 +42,14 @@ class Main extends React.Component {
       return (
         <Loading />
       );
-    } else {
+    } else {*/
       return (
-        <View style={{flex:1, backgroundColor: '#F5F5F5', paddingTop:20}}>
-          Main page
+        <View>
+          <Text>Main page</Text>
         </View>
       );
     }
-  }
+  //}
 }
 
 /*function mapStateToProps(state) {
