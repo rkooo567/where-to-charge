@@ -13,10 +13,9 @@
 import React from 'react';
 import {
   View,
-  Text,
 } from 'react-native';
 
-import Header from '../Header/index';
+import { Header } from 'react-native-elements';
 import Main from '../Main/index';
 
 export default class Home extends React.Component {
@@ -24,7 +23,11 @@ export default class Home extends React.Component {
   render() {
     return (
       <View>
-        <Header />
+        <Header
+          leftComponent={{ icon: 'menu', color: '#fff' }}
+          centerComponent={{ text: 'MY TITLE', style: { color: '#fff' } }}
+          rightComponent={{ icon: 'home', color: '#fff' }}
+        />
         <Main />
       </View>
     );
