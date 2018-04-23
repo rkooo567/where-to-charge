@@ -14,7 +14,6 @@ import { Item, Input, Button, Icon, Form } from 'native-base';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
-import Loading from '../Loading/index';
 import Error from '../Error/index';
 import { dialogIntentRequest } from '../../actions/index';
 
@@ -28,6 +27,9 @@ class ChatForm extends React.Component {
 
   buttonHandler() {
     this.props.dialogIntentRequest(this.state.text);
+    this.setState({
+      text: ""
+    });
   }
 
   inputHandler(text) {
@@ -39,8 +41,6 @@ class ChatForm extends React.Component {
   render() {
     if (this.props.error) {
       return <Error/>;
-    } else if (this.props.loading) {
-      return <Loading/>;
     } else {
       return (
           <Form>
@@ -48,6 +48,7 @@ class ChatForm extends React.Component {
               <Input
                 placeholder='Ask questions'
                 onChangeText={(text) => this.inputHandler(text)}
+                value={this.state.text}
               />
             </Item>
             <Button
@@ -65,13 +66,14 @@ class ChatForm extends React.Component {
 }
 
 function mapStateToProps(state) {
+  // bring redux (global) state here
   return {
-    loading: state.dialogFlowInformation.isLoading,
-    intent: state.dialogFlowInformation.intent,
+
   }
 }
 
 function mapDispatchToProps(dispatch) {
+  // bring actions you need here
   return bindActionCreators(
     {
       dialogIntentRequest,

@@ -3,23 +3,31 @@ import {
   dialogFlowIntentLoading
 } from '../actions/action-types';
 
-dialogFlowInitialState = {
+const dialogFlowInitialState = {
   intent: "",
   isLoading: false,
 };
 
 export const dialogFlowRequestReducer = (state = dialogFlowInitialState, action) => {
+  let newState = null;
   switch (action.type) {
     case dialogFlowIntentRequested:
-      state = {
-        intent: action.payload.intent,
-        loading: action.payload.isLoading
-      };
-      return state;
+      newState = Object.assign({}, state,
+          {
+            intent: action.payload.intent,
+            isLoading: action.payload.isLoading
+          }
+        );
+      return newState;
 
     case dialogFlowIntentLoading:
-      state.loading = action.payload.isLoading;
-      return state;
+      newState = Object.assign({}, state,
+        {
+          intent: state.intent,
+          isLoading: action.payload.isLoading
+        }
+      );
+      return newState;
 
     default:
       return state;

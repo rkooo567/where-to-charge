@@ -54,7 +54,7 @@ export function dialogIntentRequest(text) {
             intent,
             isLoading: false
           }
-        })
+        });
       })
       .catch(err => console.error(err));
   }

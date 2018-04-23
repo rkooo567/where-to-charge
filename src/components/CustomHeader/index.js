@@ -8,12 +8,11 @@
 * */
 
 import React from 'react';
-import { Container, Header, Left, Body, Right, Button, Icon, Title } from 'native-base';
+import { Header, Left, Body, Right, Button, Icon, Title } from 'native-base';
 
 export default class CustomHeader extends React.Component {
   render() {
     return (
-      <Container>
         <Header>
           <Left>
             <Button transparent>
@@ -21,7 +20,7 @@ export default class CustomHeader extends React.Component {
             </Button>
           </Left>
           <Body>
-          <Title>Header</Title>
+          <Title>Volta chatbot</Title>
           </Body>
           <Right>
             <Button transparent>
@@ -29,7 +28,6 @@ export default class CustomHeader extends React.Component {
             </Button>
           </Right>
         </Header>
-      </Container>
     );
   }
 }
