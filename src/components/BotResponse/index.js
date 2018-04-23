@@ -13,9 +13,19 @@ import React from 'react';
 import {
   View,
 } from 'react-native';
+import {
+  Button,
+  Text,
+} from 'native-base';
+}
+import Expo from 'expo';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+// import actions
+import {
+  getGeoLocation
+} from '../../actions/index';
 
 import Loading from '../Loading/index';
 import Error from '../Error/index';
@@ -49,36 +59,93 @@ class BotResponse extends React.Component {
   }
 
   componentDidUpdate() {
+    // whenever intent is updated
     this.botRespondsTo(this.props.intent);
   }
 
   botRespondsTo(intent) {
     /* trigger actions for a given intent */
     if (intent === intentType.CLOSEST_STATION) {
-      this.setResponseTypeTo(responseType.OPEN_MAP);
-      this.setBotTextTo("Click the button to open the map");
-      /* todo create an action that can ask
-          1. user's permission for geo location
-          2. set user's geo location
-          3. call volta api to find a closest station from the geo location
-      */
-      // todo open the map using the user's geo location
+      this.actionForClosestStationIntent();
     } else if (intent === intentType.FALLBACK) {
-      this.setResponseTypeTo(responseType.TEXT);
-      this.setBotTextTo("I don't understand what you said");
+      this.actionForFallBackIntent();
     } else {
       // intent is default (empty string)
-      this.setResponseTypeTo(responseType.TEXT);
-      this.setBotTextTo("Hi! Ask me questions about Volta");
+      this.actionForDefaultIntent();
     }
   }
 
-  setBotTextTo(text) {
-    this.setState({ botResponse: text });
+  actionForClosestStationIntent() {
+    /* find the closest volta station based on the current location */
+    const isGeoLocationPermitted = this.isGeoLocationPermitted();
+    let botText = "";
+    let botResponseType = "";
+
+    // ask permission if geo location is not permitted yet.
+    if (!isGeoLocationPermitted) {
+      this.askGeoLocationPermission();
+
+      // change the state
+      botText = "Please enable the geo location";
+      botResponseType = responseType.TEXT;
+
+    } else {
+      // if geo location is permitted
+      // get the current location
+      this.props.getGeoLocation();
+      // todo set the lon and lat of the closest volta station
+
+      // change the state
+      botText = "Click the button to open the map";
+      botResponseType = responseType.OPEN_MAP;
+    }
+
+    // set the state based on the result
+    this.setState({
+      botResponse: botText,
+      responseType: botResponseType
+    });
   }
 
-  setResponseTypeTo(type) {
-    this.setState({ responseType: type });
+  actionForFallBackIntent() {
+    this.setState({
+      botResponse: "I don't understand what you said",
+      responseType: responseType.TEXT
+    });
+  }
+
+  actionForDefaultIntent() {
+    this.setState({
+      botResponse: "Hi! Ask me questions about Volta",
+      responseType: responseType.TEXT
+    });
+  }
+
+  // helper functions for actionForClosestStationIntent function
+  isGeoLocationPermitted() {
+    const { Permissions } = Expo;
+    Permissions.getAsync(Permissions.Location)
+      .then(status => {
+        return status === 'granted';
+      })
+  }
+
+  askGeoLocationPermission() {
+    const { Permissions } = Expo;
+    Permissions.askAsync(Permissions.LOCATION)
+      .then(status => {
+        if (status !== 'granted') {
+          alert("You should allow this app to enable your location.");
+        } else {
+          // now the location permission is allowed.
+          this.props.locationPermissionAllowed(true);
+        }
+      })
+      .catch(err => console.error(err));
+  }
+
+  mapOpenButtonHandler() {
+    console.log("map will open!");
   }
 
   render() {
@@ -87,7 +154,14 @@ class BotResponse extends React.Component {
     } else if (this.props.isLoading) {
       return <Loading />;
     } else if (this.state.responseType === responseType.OPEN_MAP) {
-
+      return (
+        <View>
+          <BotTextCard text={this.state.botResponse}/>
+          <Button rounded onPress={() => this.mapOpenButtonHandler()}>
+            <Text>Open the map</Text>
+          </Button>
+        </View>
+      );
     } else {
       // if the response type is a text
       return (
@@ -104,6 +178,7 @@ function mapStateToProps(state) {
   return {
     intent: state.dialogFlowInformation.intent,
     isLoading: state.dialogFlowInformation.isLoading,
+    geoLocationInformation: state.geoLocationInformation,
   }
 }
 
@@ -111,7 +186,7 @@ function mapDispatchToProps(dispatch) {
   // bring actions you need here
   return bindActionCreators(
     {
-
+      getGeoLocation,
     },
     dispatch);
 }

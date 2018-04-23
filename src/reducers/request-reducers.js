@@ -1,3 +1,8 @@
+/*
+* Reducers for requesting API.
+*
+* */
+
 import {
   dialogFlowIntentRequested,
   dialogFlowIntentLoading
