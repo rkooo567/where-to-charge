@@ -1,5 +1,10 @@
-export const DATA_AVAILABLE = 'DATA_AVAILABLE';
-export const getUserLocation = "getUserLocation";
-export const closestStationRequested = "closestStationRequested";
-export const dialogFlowIntentRequested = "dialogFlowIntentRequested";
-export const dialogFlowIntentLoading = "dialogFlowIntentLoading";
+// get user's location
+export const getUserLocation = 'getUserLocation';
+// query dialogFlow API
+export const dialogFlowIntentRequested = 'dialogFlowIntentRequested';
+export const dialogFlowIntentLoading = 'dialogFlowIntentLoading';
+// closest sites
+export const closestSitesLoading = 'closestStationLoading';
+export const closestSitesRequested = 'closestStationRequested';
+// bot response actions
+export const botResponseChanged = 'botResponseChanged';

@@ -7,16 +7,26 @@
 *
 * */
 
+import { getClosestSitesOf } from "../util/index";
+
 import {
   dialogFlowIntentRequested,
   dialogFlowIntentLoading,
-  closestStationRequested,
+  closestSitesRequested,
+  closestSitesLoading,
 } from './action-types';
+import { changeBotResponse } from "./index";
 
 // Volta API
 const voltaBaseURL = "https://api.voltaapi.com/v1";
 
-export function closestVoltaSitesRequest(currentLat, currentLon) {
+// bot response's types.
+const responseType = {
+  TEXT: 'TEXT',
+  OPEN_MAP: 'OPEN_MAP',
+};
+
+export function getClosestVoltaSitesRequest(currentLat, currentLon) {
   /*
   * Return the closest lon & lat based on the current user's lon & lat
   *
@@ -28,10 +38,47 @@ export function closestVoltaSitesRequest(currentLat, currentLon) {
   * */
   return (dispatch) => {
     const requestURL = `${voltaBaseURL}/public-sites`;
+
+    // set the loading state
+    dispatch({
+      type: closestSitesLoading,
+      payload: {
+        isLoading: true
+      }
+    });
+
+    // fetch the sites data
     fetch(requestURL)
       .then(jsonData => jsonData.json())
       .then(publicSites => {
-        console.log(publicSites);
+        const currentCoordinate = {
+          latitude: Number(currentLat),
+          longitude: Number(currentLon),
+        };
+
+        // get the closest site from the current coordinate
+        const closestSite = getClosestSitesOf(publicSites, currentCoordinate);
+        const closestSiteCoordinate = {
+          lat: Number(closestSite.location.coordinates[1]),
+          lon: Number(closestSite.location.coordinates[0])
+        };
+
+        // update the closest site's coordinate and finish loading
+        dispatch({
+          type: closestSitesRequested,
+          payload: {
+            coordinate: {
+              lat: closestSiteCoordinate.lat,
+              lon: closestSiteCoordinate.lon
+            },
+            isLoading: false,
+          }
+        });
+
+        // change the state (send the message) once the closest site is updated
+        let botText = "Click the button to open the map";
+        let botResponseType = responseType.OPEN_MAP;
+        dispatch(changeBotResponse(botText, botResponseType));
       })
       .catch(err => console.error(err));
   }

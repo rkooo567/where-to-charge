@@ -4,8 +4,13 @@
 * @class BotResponse
 * @classDesc chatbot will response through this component
 *
-* @props intent: (string) intent of dialogflow as a response of user's chat string
-* @props isLoading: (boolean) loading for dialogflow request api
+* @props intent: intent of dialogflow as a response of user's chat string
+* @props isDialogFlowLoading: loading for dialogflow request api
+* @props userGeoLocationInformation: user's current geo location object {lon, lat}
+* @props questionAsked: toggled value for shouldComponentUpdate
+* @props closestSiteCoordinate: closest site' lon and lat
+* @props isClosestSitesLoading: loading for getting the closest sites from the current location
+* @props botResponse: {botResponse, responseType} bot's response text and type (TEXT & MAP)
 *
 * */
 
@@ -13,22 +18,21 @@ import React from 'react';
 import {
   View,
 } from 'react-native';
-import {
-  Button,
-  Text,
-} from 'native-base';
 import Expo from 'expo';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 // import actions
 import {
-  getGeoLocation
+  getGeoLocation,
+  getClosestVoltaSitesRequest,
+  changeBotResponse
 } from '../../actions/index';
 
 import Loading from '../Loading/index';
 import Error from '../Error/index';
 import BotTextCard from './BotTextCard/index';
+import BotMapButtonCard from './BotMapButtonCard/index';
 
 // bot response's types.
 const responseType = {
@@ -46,29 +50,39 @@ const intentType = {
 class BotResponse extends React.Component {
   static propTypes = {
     intent: PropTypes.string,
-    isLoading: PropTypes.boolean,
+    isDialogFlowLoading: PropTypes.bool,
+    userGeoLocationInformation: PropTypes.shape({
+      lon: PropTypes.number,
+      lat: PropTypes.number,
+    }),
+    questionAsked: PropTypes.bool,
+    closestSiteCoordinate: PropTypes.shape({
+      lon: PropTypes.number,
+      lat: PropTypes.number,
+    }),
+    isClosestSitesLoading: PropTypes.bool,
+    botResponse: PropTypes.shape({
+      botResponseText: PropTypes.string,
+      responseType: PropTypes.string
+    }),
   };
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      botResponse: "Hi! Ask me questions about Volta",
-      responseType: responseType.TEXT,
-    };
-  }
-
   shouldComponentUpdate(nextProps, nextState) {
-    // updated only when intent or responseType of bot is changed.
-    const botResponseChanged = this.state.botResponse !== nextState.botResponse;
-    const responseTypeChanged = this.state.responseType !== nextState.responseType;
-    // this value is toggled every time user asks a question. By this,
-    //   we can use botRespondTo function whenever user asks a question.
-    //   without this, this component is not rerendered if intent is not changed, which means
-    //   we cannot ask the same questions in a row.
-    // You can make this part more straightforward by making
-    //   this.botRespondsTo() the redux action.
+    // updated when bot response, responseType are changed or an user asks a question
+    const botResponseChanged =
+      this.props.botResponse.botResponseText !== nextProps.botResponse.botResponseText;
+    const responseTypeChanged =
+      this.props.botResponse.responseType !== nextProps.botResponse.responseType;
+    /* this value is toggled every time user asks a question. By this,
+    *   we can use botRespondTo function whenever user asks a question.
+    *   without this, this component is not rerendered if intent is not changed, which means
+    *   we cannot ask the same questions in a row.
+    * You can make this part more straightforward by making
+    *   this.botRespondsTo() the redux action.
+    */
     const questionAsked = this.props.questionAsked !== nextProps.questionAsked;
 
+    // rerender the component if one of these happens
     return botResponseChanged || responseTypeChanged || questionAsked;
   }
 
@@ -101,11 +115,9 @@ class BotResponse extends React.Component {
         const status = result.status;
         if (status === 'granted') {
           // if geo location is permitted
-          console.log("geo location permitted");
           this.sendOpenMapMessage();
         } else {
           // if geo location is not permitted
-          console.log("geo location not permitted");
           this.send_Location_Permission_Required_Message();
         }
       })
@@ -115,69 +127,54 @@ class BotResponse extends React.Component {
   sendOpenMapMessage() {
     // get the current location
     this.props.getGeoLocation();
-    console.log("geo location updated");
-    console.log(this.props.geoLocationInformation);
-    // todo set the lon and lat of the closest volta station
-    const currentCoordinate = Expo.Location.getCurrentPositionAsync({enableHighAccuracy: true});
 
-
-    // change the state (send the message)
-    let botText = "Click the button to open the map";
-    let botResponseType = responseType.OPEN_MAP;
-    this.setState({
-      botResponse: botText,
-      responseType: botResponseType
-    });
+    const currentLat = this.props.userGeoLocationInformation.lat;
+    const currentLon = this.props.userGeoLocationInformation.lon;
+    // update the closest site's lon and lat. It will be passed to
+    //   BotMapButtonCard to open the map.
+    this.props.getClosestVoltaSitesRequest(currentLat, currentLon);
   }
 
   send_Location_Permission_Required_Message() {
     /* send a bot message that we need a permission to open a map */
-    let botText = "Please enable the geo location";
-    let botResponseType = responseType.TEXT;
+    let newBotText = "Please enable the geo location. If you enabled, ask me again!";
+    let newBotResponseType = responseType.TEXT;
     // change the state (send the message)
-    this.setState({
-      botResponse: botText,
-      responseType: botResponseType
-    });
+    this.props.changeBotResponse(newBotText, newBotResponseType);
   }
 
   actionForFallBackIntent() {
-    this.setState({
-      botResponse: "I don't understand what you said",
-      responseType: responseType.TEXT
-    });
+    let newBotText = 'I don\'t understand what you said';
+    let newBotResponseType = responseType.TEXT;
+    this.props.changeBotResponse(newBotText, newBotResponseType);
   }
 
   actionForDefaultIntent() {
-    this.setState({
-      botResponse: "Hi! Ask me questions about Volta",
-      responseType: responseType.TEXT
-    });
-  }
-
-  mapOpenButtonHandler() {
-    console.log("map will open!");
+    let newBotText = 'Hi! Ask me questions about Volta';
+    let newBotResponseType = responseType.TEXT;
+    this.props.changeBotResponse(newBotText, newBotResponseType);
   }
 
   render() {
     if (this.props.error) {
       return <Error />;
-    } else if (this.props.isLoading) {
+    } else if (this.props.isDialogFlowLoading || this.props.isClosestSitesLoading) {
+      // if dialogFlow or volta API is called, render the loading component
       return <Loading />;
-    } else if (this.state.responseType === responseType.OPEN_MAP) {
+    } else if (this.props.botResponse.responseType === responseType.OPEN_MAP) {
       return (
         <View>
-          <BotTextCard text={this.state.botResponse}/>
-          <Button rounded onPress={() => this.mapOpenButtonHandler()}>
-            <Text>Open the map</Text>
-          </Button>
+          <BotTextCard text={this.props.botResponse.botResponseText}/>
+          <BotMapButtonCard
+            closestSiteCoordinate={this.props.closestSiteCoordinate}
+          />
         </View>
       );
     } else {
       // if the response type is a text
       return (
         <View>
-          <BotTextCard text={this.state.botResponse}/>
+          <BotTextCard text={this.props.botResponse.botResponseText}/>
         </View>
       );
     }
@@ -188,10 +185,15 @@ function mapStateToProps(state) {
   // bring redux (global) state here
   return {
     intent: state.dialogFlowInformation.intent,
-    isLoading: state.dialogFlowInformation.isLoading,
+    isDialogFlowLoading: state.dialogFlowInformation.isLoading,
+    // user's geo location {lon, lat}
     userGeoLocationInformation: state.userGeoLocationInformation,
     // this value is toggeld whenever the user asks a question
-    questionAsked: state.dialogFlowInformation.questionAsked
+    questionAsked: state.dialogFlowInformation.questionAsked,
+    // closest sites {lon, lat, isLoading}
+    closestSiteCoordinate: state.closestSitesInformation.coordinate,
+    isClosestSitesLoading: state.closestSitesInformation.isLoading,
+    botResponse: state.botResponse,
   }
 }
 
@@ -200,6 +202,8 @@ function mapDispatchToProps(dispatch) {
   return bindActionCreators(
     {
       getGeoLocation,
+      getClosestVoltaSitesRequest,
+      changeBotResponse
     },
     dispatch);
 }

@@ -9,8 +9,8 @@ import {
 
 // initial state is the lat and lon of uc berkeley.
 const userLocationInitialState = {
-  lat: "37.8716",
-  lon: "122.2727",
+  lat: 37.8716,
+  lon: 122.2727,
 };
 
 export const getUserLocationReducer = (state = userLocationInitialState, action) => {
@@ -20,8 +20,8 @@ export const getUserLocationReducer = (state = userLocationInitialState, action)
     case getUserLocation:
       // get the current location of the user
       newState = Object.assign({}, state, {
-        lat: action.payload.lat,
-        lon: action.payload.lon
+        lat: Number(action.payload.lat),
+        lon: Number(action.payload.lon)
       });
       return newState;
     default:
