@@ -1,5 +1,6 @@
 import {
   dialogIntentRequest,
+  closestVoltaSitesRequest
 } from "./request-actions";
 
 import {
@@ -9,6 +10,7 @@ import {
 export {
   // request actions
   dialogIntentRequest,
+  closestVoltaSitesRequest,
 
   // device information actions
   getGeoLocation,

@@ -17,7 +17,6 @@ import {
   Button,
   Text,
 } from 'native-base';
-}
 import Expo from 'expo';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -58,49 +57,84 @@ class BotResponse extends React.Component {
     };
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    // updated only when intent or responseType of bot is changed.
+    const botResponseChanged = this.state.botResponse !== nextState.botResponse;
+    const responseTypeChanged = this.state.responseType !== nextState.responseType;
+    // this value is toggled every time user asks a question. By this,
+    //   we can use botRespondTo function whenever user asks a question.
+    //   without this, this component is not rerendered if intent is not changed, which means
+    //   we cannot ask the same questions in a row.
+    // You can make this part more straightforward by making
+    //   this.botRespondsTo() the redux action.
+    const questionAsked = this.props.questionAsked !== nextProps.questionAsked;
+
+    return botResponseChanged || responseTypeChanged || questionAsked;
+  }
+
   componentDidUpdate() {
-    // whenever intent is updated
+    // whenever question is asked by users.
     this.botRespondsTo(this.props.intent);
   }
 
   botRespondsTo(intent) {
     /* trigger actions for a given intent */
     if (intent === intentType.CLOSEST_STATION) {
+      console.log("closest location required");
       this.actionForClosestStationIntent();
     } else if (intent === intentType.FALLBACK) {
+      console.log("fall back required");
       this.actionForFallBackIntent();
     } else {
       // intent is default (empty string)
+      console.log("default required");
       this.actionForDefaultIntent();
     }
   }
 
   actionForClosestStationIntent() {
     /* find the closest volta station based on the current location */
-    const isGeoLocationPermitted = this.isGeoLocationPermitted();
-    let botText = "";
-    let botResponseType = "";
 
-    // ask permission if geo location is not permitted yet.
-    if (!isGeoLocationPermitted) {
-      this.askGeoLocationPermission();
+    // ask location permission.
+    Expo.Permissions.askAsync(Expo.Permissions.LOCATION)
+      .then(result => {
+        const status = result.status;
+        if (status === 'granted') {
+          // if geo location is permitted
+          console.log("geo location permitted");
+          this.sendOpenMapMessage();
+        } else {
+          // if geo location is not permitted
+          console.log("geo location not permitted");
+          this.send_Location_Permission_Required_Message();
+        }
+      })
+      .catch(err => console.error(err));
+  }
 
-      // change the state
-      botText = "Please enable the geo location";
-      botResponseType = responseType.TEXT;
+  sendOpenMapMessage() {
+    // get the current location
+    this.props.getGeoLocation();
+    console.log("geo location updated");
+    console.log(this.props.geoLocationInformation);
+    // todo set the lon and lat of the closest volta station
+    const currentCoordinate = Expo.Location.getCurrentPositionAsync({enableHighAccuracy: true});
 
-    } else {
-      // if geo location is permitted
-      // get the current location
-      this.props.getGeoLocation();
-      // todo set the lon and lat of the closest volta station
 
-      // change the state
-      botText = "Click the button to open the map";
-      botResponseType = responseType.OPEN_MAP;
-    }
+    // change the state (send the message)
+    let botText = "Click the button to open the map";
+    let botResponseType = responseType.OPEN_MAP;
+    this.setState({
+      botResponse: botText,
+      responseType: botResponseType
+    });
+  }
 
-    // set the state based on the result
+  send_Location_Permission_Required_Message() {
+    /* send a bot message that we need a permission to open a map */
+    let botText = "Please enable the geo location";
+    let botResponseType = responseType.TEXT;
+    // change the state (send the message)
     this.setState({
       botResponse: botText,
       responseType: botResponseType
@@ -119,29 +153,6 @@ class BotResponse extends React.Component {
       botResponse: "Hi! Ask me questions about Volta",
       responseType: responseType.TEXT
     });
-  }
-
-  // helper functions for actionForClosestStationIntent function
-  isGeoLocationPermitted() {
-    const { Permissions } = Expo;
-    Permissions.getAsync(Permissions.Location)
-      .then(status => {
-        return status === 'granted';
-      })
-  }
-
-  askGeoLocationPermission() {
-    const { Permissions } = Expo;
-    Permissions.askAsync(Permissions.LOCATION)
-      .then(status => {
-        if (status !== 'granted') {
-          alert("You should allow this app to enable your location.");
-        } else {
-          // now the location permission is allowed.
-          this.props.locationPermissionAllowed(true);
-        }
-      })
-      .catch(err => console.error(err));
   }
 
   mapOpenButtonHandler() {
@@ -178,7 +189,9 @@ function mapStateToProps(state) {
   return {
     intent: state.dialogFlowInformation.intent,
     isLoading: state.dialogFlowInformation.isLoading,
-    geoLocationInformation: state.geoLocationInformation,
+    userGeoLocationInformation: state.userGeoLocationInformation,
+    // this value is toggeld whenever the user asks a question
+    questionAsked: state.dialogFlowInformation.questionAsked
   }
 }
 

@@ -11,16 +11,23 @@ import {
 import Expo from 'expo';
 
 export function getGeoLocation() {
-  /* get geo location of the device. user's permission is required. */
-  const locationInfo = Expo.Location.getCurrentPositionAsync({enableHighAccuracy: true});
-  // extract the lat, lon from location information of the device
-  const coordinate = {
-    lat: locationInfo.latitude,
-    lon: locationInfo.longitude
-  };
+  return (dispatch) => {
+    /* get geo location of the device. user's permission is required. */
+    let coordinate = {
+      lat: "",
+      lon: ""
+    };
 
-  return {
-    type: getUserLocation,
-    payload: coordinate
+    Expo.Location.getCurrentPositionAsync({enableHighAccuracy: true})
+      .then(locationData => {
+        // extract the lat, lon from location information of the device
+        coordinate.lat = locationData.coords.latitude;
+        coordinate.lon = locationData.coords.longitude;
+        dispatch({
+          type: getUserLocation,
+          payload: coordinate
+        });
+      })
+      .catch(err => console.error(err));
   }
 }

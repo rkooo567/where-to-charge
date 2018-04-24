@@ -18,8 +18,11 @@ export const getUserLocationReducer = (state = userLocationInitialState, action)
 
   switch (action.type) {
     case getUserLocation:
-      newState = Object.assign({}, state, ...action.payload);
-      console.log("new state of get user location reducers: " + newState);
+      // get the current location of the user
+      newState = Object.assign({}, state, {
+        lat: action.payload.lat,
+        lon: action.payload.lon
+      });
       return newState;
     default:
       return state;
