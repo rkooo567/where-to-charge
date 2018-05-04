@@ -10,6 +10,7 @@ NLP chatbot to search the closest charging station from the user's location.
 - native-base (style framework)
 
 # how to start
+You will need to download nodejs to use npm command.
 ```
    git clone [repo_url]
    npm install
