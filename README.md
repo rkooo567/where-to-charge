@@ -11,7 +11,9 @@ NLP chatbot to search the closest charging station from the user's location.
 
 # how to start
 ```
+   git clone [repo_url]
    npm install
+   npm i -g exp -> if you don't have exp 
    exp start
 ```
 
